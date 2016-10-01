@@ -2,6 +2,7 @@
 @Subject subject
 --(privacy: public, private, friends)
 @Privacy private
---Entry text goes after this line:
+@Music
+--Entry text goes after the dashed line--
 --------------------------------------------
 
