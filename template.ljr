@@ -1,8 +1,8 @@
 @User username 
 @Subject subject
 --(privacy: public, private, friends)
-@Privacy private
-@Music
+@Privacy public 
+@Music artist - track
 --Entry text goes after the dashed line--
 --------------------------------------------
 
