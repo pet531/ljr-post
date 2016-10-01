@@ -7,13 +7,19 @@ import Data.Aeson.Lens (_String, key)
 import Data.Time.Clock
 import Data.Time.Calendar
 import Data.Time.LocalTime
+import Data.ByteString (unpack)
+import Data.ByteString.Lazy (toStrict)
+import Data.ByteString.UTF8 (toString)
 import System.IO
+import System.Exit
 import Control.Exception
-import Data.String.Utils
+import System.Environment
+import Control.Monad
+--import Data.String.Utils
 
 user = "pet531" :: String
-entrytext = "тест" ++ "\n" ++ "τεστ" ++ "\n" ++ "test" :: String
 privacy = "private" :: String
+mood = "90" :: String
 
 getLocalTime :: IO (String, String, String, String, String) 
 getLocalTime = do     
@@ -36,11 +42,31 @@ withEcho echo action = do
   old <- hGetEcho stdin
   bracket_ (hSetEcho stdin echo) (hSetEcho stdin old) action
 
+getAddress :: [String] -> String
+getAddress args
+ | elem "-p" args = "http://lj.rossia.org/preview/entry.bml"
+ | otherwise = "http://lj.rossia.org/update.bml"
+
+getPostFilename :: [String] -> String
+getPostFilename [] = ""
+getPostFilename ("-t":xs) = head xs
+getPostFilename (x:xs) = getPostFilename xs
+
 main :: IO ()
 main = do
+  args <- getArgs
+  let isPreview = elem "-p" args
+  let address = getAddress args
+  let postF = getPostFilename args
+  if (postF == "") 
+   then do
+    putStrLn "no post file specified"
+    exitFailure
+   else return ()
+  entrytext <- readFile postF 
   password <- getPassword
-  (year, month, day, hours, mins) <- getLocalTime  
-  r <- post "http://lj.rossia.org/preview/entry.bml" [ "user" := user 
+  (year, month, day, hours, mins) <- getLocalTime 
+  r <- post address [ "user" := user 
                                               , "password" := password
                                               , "event" := entrytext
                                               , "security" := privacy
@@ -49,13 +75,15 @@ main = do
                                               , "date_ymd_dd" := day
                                               , "hour" := hours
                                               , "min" := mins
+					      , "prop_current_moodid" := mood
 					      ]
-  let body = (show $ r ^. responseBody)
-  previewFile <- openFile "preview.html" WriteMode
-  hPutStr previewFile (read body)
-  hClose previewFile
+  let body = toString $ toStrict $ r ^. responseBody
+  if isPreview then do 
+    previewFile <- openFile "preview.html" WriteMode
+    hPutStr previewFile body
+    hClose previewFile
+    else if (isInfixOf "you've posted" body)
+      then do putStr "posted.\n"
+      else do putStr "error.\n"
   putStrLn body
-  if (isInfixOf "you've posted" (show r))
-    then putStr "posted.\n"
-    else putStr "error.\n"
   putStrLn $ show r
