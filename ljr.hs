@@ -15,11 +15,33 @@ import System.Exit
 import Control.Exception
 import System.Environment
 import Control.Monad
+import Data.Maybe
 --import Data.String.Utils
 
 user = "pet531" :: String
 privacy = "private" :: String
 mood = "90" :: String
+
+optionsList = ["post", "user", "subject", "privacy", "mood"]
+
+optionHTML "user" = "user"
+optionHTML "subject" = "subject"
+optionHTML "privacy" = "security"
+optionHTML "mood" = "prop_current_moodid"
+optionHTML "post" = "event"
+ 
+
+findOption :: String -> String -> Maybe String
+findOption opt body
+ | (find (\x -> ("--" ++ opt) `isPrefixOf` x) (lines body)) == Nothing = Just ""
+ | otherwise = do 
+     x <- find (\x -> ("--" ++ opt) `isPrefixOf` x) (lines body)
+     return $ drop ((length opt) + 3) x
+
+getPostText :: String -> String
+getPostText body = unlines $ dropWhile (\x -> "--" `isPrefixOf` x) (lines body) 
+
+generateOptions body = sequence $ ((Just (getPostText body)) : (map (\x -> findOption x body) (tail $ optionsList)))
 
 getLocalTime :: IO (String, String, String, String, String) 
 getLocalTime = do     
@@ -63,24 +85,22 @@ main = do
     putStrLn "no post file specified"
     exitFailure
    else return ()
-  entrytext <- readFile postF 
+  bodytext <- readFile postF
+  let Just opts = generateOptions bodytext 
+  let postopts = zipWith (\x y -> ((optionHTML x) := y)) optionsList opts
   password <- getPassword
-  (year, month, day, hours, mins) <- getLocalTime 
-  r <- post address [ "user" := user 
-                                              , "password" := password
-                                              , "event" := entrytext
-                                              , "security" := privacy
-                                              , "date_ymd_mm" := month
-                                              , "date_ymd_yyyy" := year
-                                              , "date_ymd_dd" := day
-                                              , "hour" := hours
-                                              , "min" := mins
-					      , "prop_current_moodid" := mood
-					      ]
+  (year, month, day, hours, mins) <- getLocalTime
+  r <- post address (postopts ++ [ "password" := password
+                    , "date_ymd_mm" := month
+                    , "date_ymd_yyyy" := year
+                    , "date_ymd_dd" := day
+                    , "hour" := hours
+		    , "min" := mins
+		    ])
   let body = toString $ toStrict $ r ^. responseBody
   if isPreview then do 
     previewFile <- openFile "preview.html" WriteMode
-    hPutStr previewFile body
+    hPutStr previewFile ("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n" ++ body)
     hClose previewFile
     else if (isInfixOf "you've posted" body)
       then do putStr "posted.\n"

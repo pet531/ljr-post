@@ -1,6 +1,6 @@
 # ljr-post
 
-ljr posting script
+ljr posting script. template file provided to set various options.
 
 usage: ljr [-p] -t postfile
 

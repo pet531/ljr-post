@@ -1,0 +1,7 @@
+--user username 
+--subject subject
+--privacy private
+--(privacy: public, private, friends)
+--entry text goes after this line:
+
+some text
