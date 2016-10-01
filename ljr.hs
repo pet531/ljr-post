@@ -18,13 +18,14 @@ import Control.Monad
 import Data.Maybe
 import System.Process
 
-optionsList = ["Post", "User", "Subject", "Privacy", "Mood"]
+optionsList = ["Post", "User", "Subject", "Privacy", "Mood", "Music"]
 
 optionHTML "User" = "user"
 optionHTML "Subject" = "subject"
 optionHTML "Privacy" = "security"
 optionHTML "Mood" = "prop_current_moodid"
 optionHTML "Post" = "event"
+optionHTML "Music" = "prop_current_music"
  
 
 findOption :: String -> String -> Maybe String
@@ -47,8 +48,9 @@ getLocalTime = do
     let mins = todMin $ localTimeOfDay $ zonedTimeToLocalTime t
     return (show year, show month, show day, show hours, show mins)
 
-getPassword :: IO String
-getPassword = do
+getPassword :: Bool -> IO String
+getPassword prev = if prev then return ""
+ else do
   putStr "password: "
   hFlush stdout
   pass <- withEcho False getLine
@@ -84,14 +86,15 @@ main = do
   bodytext <- readFile postF
   let Just opts = generateOptions bodytext 
   let postopts = zipWith (\x y -> ((optionHTML x) := y)) optionsList opts
-  password <- getPassword
+  password <- getPassword isPreview
   (year, month, day, hours, mins) <- getLocalTime
+  let mins2 = two_digits mins
   r <- post address (postopts ++ [ "password" := password
                     , "date_ymd_mm" := month
                     , "date_ymd_yyyy" := year
                     , "date_ymd_dd" := day
                     , "hour" := hours
-		    , "min" := mins
+		    , "min" := mins2
 		    ])
   let body = toString $ toStrict $ r ^. responseBody
   if isPreview then do 
@@ -103,3 +106,8 @@ main = do
     else if (isInfixOf "you've posted" body)
       then do putStr "posted.\n"
       else do putStr "error.\n"
+  where
+    two_digits :: String -> String
+    two_digits m
+      | length m == 1 = ('0':m)
+      | otherwise = m
