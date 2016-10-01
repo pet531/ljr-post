@@ -9,9 +9,10 @@ import Data.Time.Calendar
 import Data.Time.LocalTime
 import System.IO
 import Control.Exception
+import Data.String.Utils
 
 user = "pet531" :: String
-entrytext = "test" ++ "\n" ++ "test" ++ "\n" ++ "test" :: String
+entrytext = "тест" ++ "\n" ++ "τεστ" ++ "\n" ++ "test" :: String
 privacy = "private" :: String
 
 getLocalTime :: IO (String, String, String, String, String) 
@@ -39,7 +40,7 @@ main :: IO ()
 main = do
   password <- getPassword
   (year, month, day, hours, mins) <- getLocalTime  
-  r <- post "http://lj.rossia.org/update.bml" [ "user" := user 
+  r <- post "http://lj.rossia.org/preview/entry.bml" [ "user" := user 
                                               , "password" := password
                                               , "event" := entrytext
                                               , "security" := privacy
@@ -49,7 +50,12 @@ main = do
                                               , "hour" := hours
                                               , "min" := mins
 					      ]
+  let body = (show $ r ^. responseBody)
+  previewFile <- openFile "preview.html" WriteMode
+  hPutStr previewFile (read body)
+  hClose previewFile
+  putStrLn body
   if (isInfixOf "you've posted" (show r))
     then putStr "posted.\n"
     else putStr "error.\n"
-  --putStrLn $ show r
+  putStrLn $ show r
