@@ -1,7 +1,13 @@
 # ljr-post
 
-ljr posting script. template file provided to set various options.
+ljr posting script. See template.ljr for the format.
 
-usage: ljr [-p] -t postfile
+Supported options: @User, @Subject, @Privacy, @Mood, @Music
 
--p -- writes preview to preview.html
+usage: ljr-post [-p] -t postfile
+
+-p -- writes preview to /tmp/preview.html and attempts to xdg-open it.
+
+Installation: 
+
+e.g. stack build, stack install

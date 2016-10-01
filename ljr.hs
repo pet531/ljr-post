@@ -23,7 +23,7 @@ optionsList = ["Post", "User", "Subject", "Privacy", "Mood", "Music"]
 optionHTML "User" = "user"
 optionHTML "Subject" = "subject"
 optionHTML "Privacy" = "security"
-optionHTML "Mood" = "prop_current_moodid"
+optionHTML "Mood" = "prop_current_mood"
 optionHTML "Post" = "event"
 optionHTML "Music" = "prop_current_music"
  
