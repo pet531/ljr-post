@@ -16,30 +16,26 @@ import Control.Exception
 import System.Environment
 import Control.Monad
 import Data.Maybe
---import Data.String.Utils
+import System.Process
 
-user = "pet531" :: String
-privacy = "private" :: String
-mood = "90" :: String
+optionsList = ["Post", "User", "Subject", "Privacy", "Mood"]
 
-optionsList = ["post", "user", "subject", "privacy", "mood"]
-
-optionHTML "user" = "user"
-optionHTML "subject" = "subject"
-optionHTML "privacy" = "security"
-optionHTML "mood" = "prop_current_moodid"
-optionHTML "post" = "event"
+optionHTML "User" = "user"
+optionHTML "Subject" = "subject"
+optionHTML "Privacy" = "security"
+optionHTML "Mood" = "prop_current_moodid"
+optionHTML "Post" = "event"
  
 
 findOption :: String -> String -> Maybe String
 findOption opt body
- | (find (\x -> ("--" ++ opt) `isPrefixOf` x) (lines body)) == Nothing = Just ""
+ | (find (\x -> ("@" ++ opt) `isPrefixOf` x) (lines body)) == Nothing = Just ""
  | otherwise = do 
-     x <- find (\x -> ("--" ++ opt) `isPrefixOf` x) (lines body)
-     return $ drop ((length opt) + 3) x
+     x <- find (\x -> ("@" ++ opt) `isPrefixOf` x) (lines body)
+     return $ drop ((length opt) + 2) x
 
 getPostText :: String -> String
-getPostText body = unlines $ dropWhile (\x -> "--" `isPrefixOf` x) (lines body) 
+getPostText body = unlines $ dropWhile (\x -> ("--" `isPrefixOf` x) || ("@" `isPrefixOf` x)) (lines body) 
 
 generateOptions body = sequence $ ((Just (getPostText body)) : (map (\x -> findOption x body) (tail $ optionsList)))
 
@@ -99,11 +95,11 @@ main = do
 		    ])
   let body = toString $ toStrict $ r ^. responseBody
   if isPreview then do 
-    previewFile <- openFile "preview.html" WriteMode
+    previewFile <- openFile "/tmp/preview.html" WriteMode
     hPutStr previewFile ("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n" ++ body)
     hClose previewFile
+    exc <- system ("xdg-open /tmp/preview.html")
+    exitWith exc
     else if (isInfixOf "you've posted" body)
       then do putStr "posted.\n"
       else do putStr "error.\n"
-  putStrLn body
-  putStrLn $ show r

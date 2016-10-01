@@ -1,7 +1,7 @@
---user username 
---subject subject
---privacy private
+@User username 
+@Subject subject
 --(privacy: public, private, friends)
---entry text goes after this line:
+@Privacy private
+--Entry text goes after this line:
+--------------------------------------------
 
-some text

@@ -1,0 +1,26 @@
+name:                ljr-post
+version:             0.1.0.0
+synopsis:            Simple project template from stack
+description:         Please see README.md
+homepage:            https://github.com/pet531/ljr-post#readme
+license:             BSD3
+license-file:        LICENSE
+author:              pet531 
+maintainer:          pet531
+copyright:           2016 pet531 
+category:            Web
+build-type:          Simple
+cabal-version:       >=1.10
+
+executable ljr-post
+  main-is:             ljr.hs
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5
+  ghc-options:         -dynamic
+  build-depends:         process
+                       , bytestring
+                       , time
+                       , wreq
+                       , lens
+                       , lens-aeson
+                       , utf8-string
