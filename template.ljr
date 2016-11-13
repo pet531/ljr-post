@@ -1,8 +1,9 @@
-@User username 
-@Subject subject
+--options should end in ;
+@User username;
+@Subject subject;
 --(privacy: public, private, friends)
-@Privacy public 
-@Music artist - track
+@Privacy public;  
+@Music artist - track;
 --Entry text goes after the dashed line--
 --------------------------------------------
 

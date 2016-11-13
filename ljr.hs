@@ -30,10 +30,10 @@ optionHTML "Music" = "prop_current_music"
 
 findOption :: String -> String -> Maybe String
 findOption opt body
- | (find (\x -> ("@" ++ opt) `isPrefixOf` x) (lines body)) == Nothing = Just ""
+ | (find (\x -> (("@" ++ opt) `isPrefixOf` x)) (lines body)) == Nothing = Just ""
  | otherwise = do 
      x <- find (\x -> ("@" ++ opt) `isPrefixOf` x) (lines body)
-     return $ drop ((length opt) + 2) x
+     return $ drop ((length opt) + 2) $ takeWhile (/= ';') x
 
 getPostText :: String -> String
 getPostText body = unlines $ dropWhile (\x -> ("--" `isPrefixOf` x) || ("@" `isPrefixOf` x)) (lines body) 
