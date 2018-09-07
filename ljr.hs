@@ -26,7 +26,14 @@ optionHTML "Privacy" = "security"
 optionHTML "Mood" = "prop_current_mood"
 optionHTML "Post" = "event"
 optionHTML "Music" = "prop_current_music"
- 
+
+usage = "usage: ljr-post -t posttext.ljr [-p] [-s pwd]\n\
+        \See template.ljr for the posting example.\n\ 
+        \-p\n\
+        \    writes preview to /tmp/preview.html and attempts to xdg-open it.\n\
+        \-s\n\
+        \    if passed, will not ask for password, but will read it from the argument.\n\
+        \    Useful for additional scripting."
 
 findOption :: String -> String -> Maybe String
 findOption opt body
@@ -48,9 +55,10 @@ getLocalTime = do
     let mins = todMin $ localTimeOfDay $ zonedTimeToLocalTime t
     return (show year, show month, show day, show hours, show mins)
 
-getPassword :: Bool -> IO String
-getPassword prev = if prev then return ""
- else do
+getPassword :: Bool -> Bool -> [String] -> IO String
+getPassword True _ _ = return ""
+getPassword False True args = return $ getPasswordFromArgs args
+getPassword False False _ = do
   putStr "password: "
   hFlush stdout
   pass <- withEcho False getLine
@@ -72,21 +80,28 @@ getPostFilename [] = ""
 getPostFilename ("-t":xs) = head xs
 getPostFilename (x:xs) = getPostFilename xs
 
+getPasswordFromArgs :: [String] -> String
+getPasswordFromArgs [] = ""
+getPasswordFromArgs ("-s":xs) = head xs
+getPasswordFromArgs (x:xs) = getPasswordFromArgs xs
+
 main :: IO ()
 main = do
   args <- getArgs
   let isPreview = elem "-p" args
+  let passInArgs = elem "-s" args
   let address = getAddress args
   let postF = getPostFilename args
   if (postF == "") 
    then do
     putStrLn "no post file specified"
+    putStrLn usage
     exitFailure
    else return ()
   bodytext <- readFile postF
   let Just opts = generateOptions bodytext 
   let postopts = zipWith (\x y -> ((optionHTML x) := y)) optionsList opts
-  password <- getPassword isPreview
+  password <- getPassword isPreview passInArgs args
   (year, month, day, hours, mins) <- getLocalTime
   let mins2 = two_digits mins
   r <- post address (postopts ++ [ "password" := password
@@ -105,7 +120,9 @@ main = do
     exitWith exc
     else if (isInfixOf "you've posted" body)
       then do putStr "posted.\n"
-      else do putStr "error.\n"
+      else do
+        putStr "error.\n"
+	putStr usage
   where
     two_digits :: String -> String
     two_digits m

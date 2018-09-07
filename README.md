@@ -4,9 +4,12 @@ ljr posting script. See template.ljr for the format.
 
 Supported options: @User, @Subject, @Privacy, @Mood, @Music
 
-usage: ljr-post [-p] -t postfile
-
--p -- writes preview to /tmp/preview.html and attempts to xdg-open it.
+usage: ljr-post -t posttext.ljr [-p] [-s pwd]
+       -p
+           writes preview to /tmp/preview.html and attempts to xdg-open it.
+       -s
+           if passed, will not ask for password, but will read it from the argument.
+           Useful for additional scripting.
 
 Installation: 
 
